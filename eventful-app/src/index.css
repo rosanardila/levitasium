@@ -1,0 +1,41 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --ff-display: 'DM Serif Display', serif;
+  --ff-body: 'DM Sans', sans-serif;
+  --c-accent: #1D9E75;
+  --c-accent2: #0F6E56;
+  --c-bg: #ffffff;
+  --c-bg2: #f5f5f3;
+  --c-bg3: #eeecea;
+  --c-border: rgba(0,0,0,0.1);
+  --c-border2: rgba(0,0,0,0.18);
+  --c-txt: #1a1a18;
+  --c-txt2: #6b6b66;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --c-bg: #1a1a18;
+    --c-bg2: #242422;
+    --c-bg3: #2e2e2b;
+    --c-border: rgba(255,255,255,0.1);
+    --c-border2: rgba(255,255,255,0.18);
+    --c-txt: #f0efe8;
+    --c-txt2: #9a9a94;
+  }
+}
+
+body {
+  font-family: var(--ff-body);
+  background: var(--c-bg);
+  color: var(--c-txt);
+  font-size: 14px;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#root { height: 100vh; display: flex; flex-direction: column; }
+
+/* Leaflet fix */
+.leaflet-container { height: 100%; width: 100%; }
