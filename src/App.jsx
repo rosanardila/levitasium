@@ -63,15 +63,23 @@ export default function App() {
   const [addressQuery, setAddressQuery] = useState('')
   const [geocoding, setGeocoding] = useState(false)
 
-  const useSupabase = !!(supabase && import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY &&
-    import.meta.env.VITE_SUPABASE_URL !== 'https://your-project.supabase.co')
+  const useSupabase = !!supabase
 
   const loadEvents = useCallback(async () => {
     setLoading(true)
     if (useSupabase) {
-      const { data, error } = await supabase.from('events').select('*').order('date', { ascending: true })
-      if (!error && data) setEvents(data)
-      else { console.warn('Supabase fallback', error); setEvents(MOCK_EVENTS) }
+      const { data, error } = await supabase.from('events').select('*').order('start_at', { ascending: true })
+      if (!error && data) {
+        setEvents(data.map(e => ({
+          id: e.id,
+          title: e.title,
+          desc: e.description,
+          date: e.start_at ? e.start_at.slice(0, 10) : '',
+          cat: e.tags?.[0] || 'community',
+          lat: e.lat,
+          lng: e.lng,
+        })))
+      } else { console.warn('Supabase fallback', error); setEvents(MOCK_EVENTS) }
     } else {
       setEvents(MOCK_EVENTS)
     }
@@ -111,13 +119,22 @@ export default function App() {
   async function saveEvent() {
     if (!form.title || !form.date) return alert('Please fill in a title and date.')
     setSaving(true)
-    const payload = { title: form.title, date: form.date, cat: form.cat, desc: form.desc, lat: parseFloat(form.lat) || 48.8566, lng: parseFloat(form.lng) || 2.3522 }
+    const lat = parseFloat(form.lat) || 48.8566
+    const lng = parseFloat(form.lng) || 2.3522
     if (useSupabase) {
-      const { error } = await supabase.from('events').insert([payload])
+      const { error } = await supabase.from('events').insert([{
+        title: form.title,
+        description: form.desc || null,
+        start_at: new Date(form.date + 'T12:00:00').toISOString(),
+        location_name: addressQuery.trim() || `${lat.toFixed(4)}, ${lng.toFixed(4)}`,
+        lat,
+        lng,
+        tags: [form.cat],
+      }])
       if (error) { alert('Error saving: ' + error.message); setSaving(false); return }
       await loadEvents()
     } else {
-      setEvents(prev => [...prev, { ...payload, id: Date.now() }])
+      setEvents(prev => [...prev, { id: Date.now(), title: form.title, desc: form.desc, date: form.date, cat: form.cat, lat, lng }])
     }
     setSaving(false)
     setModalOpen(false)
