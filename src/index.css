@@ -25,3 +25,10 @@ body {
 }
 
 .leaflet-container { height: 100%; width: 100%; }
+.leaflet-container img,
+.leaflet-tile {
+  border: none !important;
+  border-image: none !important;
+  border-radius: 0 !important;
+  max-width: none !important;
+}

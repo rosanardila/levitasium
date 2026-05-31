@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback, useRef, memo } from 'react'
 import { MapContainer, TileLayer, Marker } from 'react-leaflet'
 import L from 'leaflet'
 import { supabase } from './supabase'
@@ -162,6 +162,7 @@ export default function App() {
 
   return (
     <div className="doodle">
+      <GrainOverlay />
       {/* Sticky header */}
       <header className="topbar">
         <div className="container">
@@ -414,3 +415,38 @@ function PickerMap({ lat, lng, onPick = null }) {
 
   return <div ref={containerRef} style={{ height: '100%', width: '100%' }} />
 }
+
+const GrainOverlay = memo(function GrainOverlay() {
+  const canvasRef = useRef(null)
+
+  useEffect(() => {
+    const canvas = canvasRef.current
+    if (!canvas) return
+    const w = 600
+    const h = 600
+    canvas.width = w
+    canvas.height = h
+    const ctx = canvas.getContext('2d')
+    const imageData = ctx.createImageData(w, h)
+    const data = imageData.data
+    for (let i = 0; i < data.length; i += 4) {
+      const on = Math.random() < 0.04
+      data[i] = 0
+      data[i + 1] = 0
+      data[i + 2] = 0
+      data[i + 3] = on ? Math.floor(Math.random() * 80 + 20) : 0
+    }
+    ctx.putImageData(imageData, 0, 0)
+  }, [])
+
+  return (
+    <canvas
+      ref={canvasRef}
+      style={{
+        position: 'fixed', inset: 0, width: '100%', height: '100%',
+        zIndex: 9998, pointerEvents: 'none', opacity: 0.45,
+        imageRendering: 'pixelated',
+      }}
+    />
+  )
+})
