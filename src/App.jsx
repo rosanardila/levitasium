@@ -18,9 +18,9 @@ const MONTHS = ['January','February','March','April','May','June','July','August
 function makeIcon(cat) {
   return L.divIcon({
     className: '',
-    html: `<div style="width:14px;height:14px;border-radius:50%;background:${CAT_COLORS[cat]};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)"></div>`,
-    iconSize: [14, 14],
-    iconAnchor: [7, 7],
+    html: `<div style="width:12px;height:12px;border-radius:50%;background:${CAT_COLORS[cat]};border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.35)"></div>`,
+    iconSize: [12, 12],
+    iconAnchor: [6, 6],
   })
 }
 
@@ -51,10 +51,10 @@ const MOCK_EVENTS = [
 export default function App() {
   const [events, setEvents] = useState([])
   const [loading, setLoading] = useState(true)
-  const [tab, setTab] = useState('map')
+  const [tab, setTab] = useState('list')
   const [search, setSearch] = useState('')
   const [selectedCats, setSelectedCats] = useState(new Set(ALL_CATS))
-  const [selectedId, setSelectedId] = useState(null)
+  const [detailEvent, setDetailEvent] = useState(null)
   const [calYear, setCalYear] = useState(new Date().getFullYear())
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
   const [mapRef, setMapRef] = useState(null)
@@ -87,8 +87,6 @@ export default function App() {
     (!search || e.title.toLowerCase().includes(search.toLowerCase()) || e.desc?.toLowerCase().includes(search.toLowerCase()))
   ).sort((a, b) => a.date.localeCompare(b.date))
 
-  const selectedEvent = events.find(e => e.id === selectedId)
-
   function toggleCat(cat) {
     setSelectedCats(prev => {
       const next = new Set(prev)
@@ -99,10 +97,8 @@ export default function App() {
   }
 
   function selectEvent(id) {
-    setSelectedId(id)
-    setTab('map')
     const ev = events.find(e => e.id === id)
-    if (ev && mapRef) mapRef.setView([ev.lat, ev.lng], 15)
+    setDetailEvent(ev ?? null)
   }
 
   async function handleGeocode() {
@@ -153,101 +149,119 @@ export default function App() {
 
   return (
     <div className="app">
-      <div className="topbar">
+      <header className="topbar">
         <h1 className="logo">Eventful</h1>
-        {!useSupabase && <span className="mock-badge">mock data</span>}
+        <input
+          className="search-input"
+          placeholder="Search events…"
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
         <div className="tab-group">
-          <button className={`tab-btn${tab === 'map' ? ' active' : ''}`} onClick={() => setTab('map')}>🗺 Map</button>
-          <button className={`tab-btn${tab === 'cal' ? ' active' : ''}`} onClick={() => setTab('cal')}>📅 Calendar</button>
+          <button className={`tab-btn${tab === 'list' ? ' active' : ''}`} onClick={() => setTab('list')}>Events</button>
+          <button className={`tab-btn${tab === 'map' ? ' active' : ''}`} onClick={() => setTab('map')}>Map</button>
+          <button className={`tab-btn${tab === 'cal' ? ' active' : ''}`} onClick={() => setTab('cal')}>Calendar</button>
         </div>
         <button className="add-btn" onClick={() => {
           setForm({ title: '', date: new Date().toISOString().slice(0, 10), cat: 'music', desc: '', lat: '48.8566', lng: '2.3522' })
           setAddressQuery('')
           setModalOpen(true)
         }}>+ Add event</button>
+      </header>
+
+      <div className="filters-bar">
+        {ALL_CATS.map(cat => (
+          <button key={cat} className={`cat-chip${selectedCats.has(cat) ? ' on' : ''}`}
+            style={selectedCats.has(cat) ? { background: CAT_COLORS[cat], borderColor: CAT_COLORS[cat], color: '#fff' } : {}}
+            onClick={() => toggleCat(cat)}>{CAT_LABELS[cat]}</button>
+        ))}
+        {!useSupabase && <span className="mock-badge">mock data</span>}
       </div>
 
-      <div className="main">
-        <div className="sidebar">
-          <div className="search-wrap">
-            <input className="search-input" placeholder="Search events…" value={search} onChange={e => setSearch(e.target.value)} />
-          </div>
-          <div className="cat-filters">
-            {ALL_CATS.map(cat => (
-              <button key={cat} className={`cat-chip${selectedCats.has(cat) ? ' on' : ''}`}
-                style={selectedCats.has(cat) ? { background: CAT_COLORS[cat], borderColor: CAT_COLORS[cat], color: '#fff' } : {}}
-                onClick={() => toggleCat(cat)}>{CAT_LABELS[cat]}</button>
-            ))}
-          </div>
-          <div className="event-list">
-            {loading ? <div className="no-events">Loading…</div>
-              : filtered.length === 0 ? <div className="no-events">No events found</div>
-              : filtered.map(ev => (
-                <div key={ev.id} className={`ev-item${ev.id === selectedId ? ' selected' : ''}`} onClick={() => selectEvent(ev.id)}>
-                  <div className="ev-title">
-                    <span className="ev-dot" style={{ background: CAT_COLORS[ev.cat] }} />
-                    {ev.title}
+      <div className="content">
+        {tab === 'list' && (
+          <div className="cards-wrap">
+            {loading ? (
+              <div className="empty-state">Loading…</div>
+            ) : filtered.length === 0 ? (
+              <div className="empty-state">No events match your filters.</div>
+            ) : (
+              <div className="cards-grid">
+                {filtered.map(ev => (
+                  <div key={ev.id} className="event-card" onClick={() => selectEvent(ev.id)}>
+                    <div className="card-bar" style={{ background: CAT_COLORS[ev.cat] }} />
+                    <div className="card-body">
+                      <div className="card-cat" style={{ color: CAT_COLORS[ev.cat] }}>{CAT_LABELS[ev.cat]}</div>
+                      <h3 className="card-title">{ev.title}</h3>
+                      <div className="card-date">{formatDate(ev.date)}</div>
+                      {ev.desc && <p className="card-desc">{ev.desc}</p>}
+                    </div>
                   </div>
-                  <div className="ev-meta">{formatDate(ev.date)}</div>
-                </div>
-              ))}
+                ))}
+              </div>
+            )}
           </div>
-        </div>
+        )}
 
-        <div className="content">
-          <div className="map-wrap" style={{ display: tab === 'map' ? 'block' : 'none' }}>
+        {tab === 'map' && (
+          <div className="map-wrap">
             <MapContainer center={[48.866, 2.355]} zoom={13} style={{ height: '100%', width: '100%' }}
-              ref={setMapRef}
-              whenReady={e => setMapRef(e.target)}>
+              ref={setMapRef} whenReady={e => setMapRef(e.target)}>
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="© OpenStreetMap" />
               {filtered.map(ev => (
                 <Marker key={ev.id} position={[ev.lat, ev.lng]} icon={makeIcon(ev.cat)}
                   eventHandlers={{ click: () => selectEvent(ev.id) }} />
               ))}
             </MapContainer>
-
-            {selectedEvent && tab === 'map' && (
-              <div className="map-overlay">
-                <button className="ov-close" onClick={() => setSelectedId(null)}>×</button>
-                <h3 className="ov-title">{selectedEvent.title}</h3>
-                <div className="ov-meta">
-                  <span className="ev-dot" style={{ background: CAT_COLORS[selectedEvent.cat] }} />
-                  {CAT_LABELS[selectedEvent.cat]} · {formatDate(selectedEvent.date)}
-                </div>
-                {selectedEvent.desc && <p className="ov-desc">{selectedEvent.desc}</p>}
-              </div>
-            )}
           </div>
+        )}
 
-          {tab === 'cal' && (
-            <div className="calendar-view">
-              <div className="cal-nav">
-                <button onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1) } else setCalMonth(m => m - 1) }}>←</button>
-                <span className="cal-title">{MONTHS[calMonth]} {calYear}</span>
-                <button onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1) } else setCalMonth(m => m + 1) }}>→</button>
-              </div>
-              <div className="cal-grid">
-                {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => <div key={d} className="cal-day-label">{d}</div>)}
-                {calDays.map((cell, i) => (
-                  <div key={i} className={`cal-cell${!cell.cur ? ' other-month' : ''}${cell.isToday ? ' today' : ''}`}>
-                    <div className="cal-num">{cell.day}</div>
-                    {cell.evs?.slice(0, 3).map(ev => (
-                      <div key={ev.id} className="cal-ev-pill" style={{ background: CAT_COLORS[ev.cat] }}
-                        title={ev.title} onClick={() => selectEvent(ev.id)}>{ev.title}</div>
-                    ))}
-                    {cell.evs?.length > 3 && <div className="cal-more">+{cell.evs.length - 3} more</div>}
-                  </div>
-                ))}
-              </div>
+        {tab === 'cal' && (
+          <div className="calendar-view">
+            <div className="cal-nav">
+              <button onClick={() => { if (calMonth === 0) { setCalMonth(11); setCalYear(y => y - 1) } else setCalMonth(m => m - 1) }}>←</button>
+              <span className="cal-title">{MONTHS[calMonth]} {calYear}</span>
+              <button onClick={() => { if (calMonth === 11) { setCalMonth(0); setCalYear(y => y + 1) } else setCalMonth(m => m + 1) }}>→</button>
             </div>
-          )}
-        </div>
+            <div className="cal-grid">
+              {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(d => <div key={d} className="cal-day-label">{d}</div>)}
+              {calDays.map((cell, i) => (
+                <div key={i} className={`cal-cell${!cell.cur ? ' other-month' : ''}${cell.isToday ? ' today' : ''}`}>
+                  <div className="cal-num">{cell.day}</div>
+                  {cell.evs?.slice(0, 3).map(ev => (
+                    <div key={ev.id} className="cal-ev-pill" style={{ background: CAT_COLORS[ev.cat] }}
+                      title={ev.title} onClick={() => selectEvent(ev.id)}>{ev.title}</div>
+                  ))}
+                  {cell.evs?.length > 3 && <div className="cal-more">+{cell.evs.length - 3} more</div>}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
+      {/* Event detail card */}
+      {detailEvent && (
+        <div className="modal-bg" onClick={e => e.target === e.currentTarget && setDetailEvent(null)}>
+          <div className="modal">
+            <button className="modal-close" onClick={() => setDetailEvent(null)}>×</button>
+            <div className="detail-cat" style={{ color: CAT_COLORS[detailEvent.cat] }}>{CAT_LABELS[detailEvent.cat]}</div>
+            <h2 className="detail-title">{detailEvent.title}</h2>
+            <div className="detail-meta">📅 {formatDate(detailEvent.date)}</div>
+            {detailEvent.desc && <p className="detail-desc">{detailEvent.desc}</p>}
+            <div className="detail-map">
+              <PickerMap lat={detailEvent.lat} lng={detailEvent.lng} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add event modal */}
       {modalOpen && (
         <div className="modal-bg" onClick={e => e.target === e.currentTarget && setModalOpen(false)}>
           <div className="modal">
-            <h2>New event</h2>
+            <button className="modal-close" onClick={() => setModalOpen(false)}>×</button>
+            <h2 className="modal-heading">New event</h2>
             <div className="field">
               <label>Title</label>
               <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="What's happening?" />
@@ -268,28 +282,25 @@ export default function App() {
             </div>
             <div className="field">
               <label>Location</label>
-              <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+              <div className="location-row">
                 <input
-                  style={{ flex: 1 }}
                   value={addressQuery}
                   onChange={e => setAddressQuery(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleGeocode()}
                   placeholder="Search address or venue…"
                 />
-                <button className="pick-btn" onClick={handleGeocode} disabled={geocoding} title="Search">
+                <button className="pick-btn" onClick={handleGeocode} disabled={geocoding}>
                   {geocoding ? '…' : '🔍'}
                 </button>
               </div>
-              <div style={{ height: 220, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--c-border, #e5e7eb)' }}>
+              <div className="picker-map-wrap">
                 <PickerMap
                   lat={parseFloat(form.lat)}
                   lng={parseFloat(form.lng)}
                   onPick={(lat, lng) => setForm(f => ({ ...f, lat: lat.toFixed(5), lng: lng.toFixed(5) }))}
                 />
               </div>
-              <div style={{ fontSize: 11, color: 'var(--c-txt2)', marginTop: 4 }}>
-                📍 {parseFloat(form.lat).toFixed(4)}, {parseFloat(form.lng).toFixed(4)} · click map to adjust pin
-              </div>
+              <div className="coords-hint">📍 {parseFloat(form.lat).toFixed(4)}, {parseFloat(form.lng).toFixed(4)} · click map to adjust</div>
             </div>
             <div className="modal-actions">
               <button className="btn-cancel" onClick={() => setModalOpen(false)}>Cancel</button>
@@ -302,7 +313,7 @@ export default function App() {
   )
 }
 
-function PickerMap({ lat, lng, onPick }) {
+function PickerMap({ lat, lng, onPick = null }) {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
   const markerRef = useRef(null)
@@ -323,11 +334,11 @@ function PickerMap({ lat, lng, onPick }) {
         shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
         iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41],
       })
-      const map = L.map(containerRef.current, { center: [lat, lng], zoom: 13 })
+      const map = L.map(containerRef.current, { center: [lat, lng], zoom: 13, zoomControl: onPick !== null })
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '© OpenStreetMap contributors', maxZoom: 19,
       }).addTo(map)
-      map.on('click', e => onPickRef.current(e.latlng.lat, e.latlng.lng))
+      if (onPickRef.current) map.on('click', e => onPickRef.current(e.latlng.lat, e.latlng.lng))
       mapRef.current = map
       markerRef.current = L.marker([lat, lng], { icon: iconRef.current }).addTo(map)
       requestAnimationFrame(() => { if (!cancelled && mapRef.current) mapRef.current.invalidateSize() })

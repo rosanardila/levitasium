@@ -33,6 +33,7 @@ body {
   font-size: 14px;
   height: 100vh;
   overflow: hidden;
+  -webkit-font-smoothing: antialiased;
 }
 
 #root { height: 100vh; display: flex; flex-direction: column; }

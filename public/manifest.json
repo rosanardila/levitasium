@@ -1,0 +1,21 @@
+{
+  "name": "Eventful",
+  "short_name": "Eventful",
+  "description": "Discover and share community events on a map",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#1D9E75",
+  "icons": [
+    {
+      "src": "https://emojicdn.elk.sh/🗺?style=twitter",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://emojicdn.elk.sh/🗺?style=twitter",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
