@@ -161,7 +161,7 @@ export default function App() {
   })()
 
   return (
-    <div>
+    <div className="doodle">
       {/* Sticky header */}
       <header className="topbar">
         <div className="container">
@@ -227,7 +227,7 @@ export default function App() {
             filtered.length === 0 ? <div className="empty-state">No events match your filters.</div> :
             <div className="list-grid">
               {filtered.map(ev => (
-                <div key={ev.id} className="event-card" onClick={() => selectEvent(ev.id)}>
+                <div key={ev.id} className="event-card doodle-border" onClick={() => selectEvent(ev.id)}>
                   <div className="card-header">
                     <div>
                       <h3 className="card-title">{ev.title}</h3>
@@ -299,7 +299,7 @@ export default function App() {
       {/* Event detail modal */}
       {detailEvent && (
         <div className="modal-bg" onClick={e => e.target === e.currentTarget && setDetailEvent(null)}>
-          <div className="modal">
+          <div className="modal doodle-border">
             <button className="modal-close" onClick={() => setDetailEvent(null)}>×</button>
             <div className="detail-cat" style={{ color: CAT_COLORS[detailEvent.cat] }}>{CAT_LABELS[detailEvent.cat]}</div>
             <h2 className="detail-title">{detailEvent.title}</h2>
@@ -315,7 +315,7 @@ export default function App() {
       {/* Add event modal */}
       {modalOpen && (
         <div className="modal-bg" onClick={e => e.target === e.currentTarget && setModalOpen(false)}>
-          <div className="modal">
+          <div className="modal doodle-border">
             <button className="modal-close" onClick={() => setModalOpen(false)}>×</button>
             <h2 className="modal-heading">New event</h2>
             <div className="field">
