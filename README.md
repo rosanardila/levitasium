@@ -32,7 +32,7 @@ create table events (
   id bigint generated always as identity primary key,
   title text not null,
   date date not null,
-  cat text not null check (cat in ('music', 'sport', 'art', 'food', 'community')),
+  cat text not null check (cat in ('book', 'novel', 'short story', 'article', 'author')),
   lat double precision not null,
   lng double precision not null,
   desc text,
