@@ -5,13 +5,13 @@ import { supabase } from './supabase'
 import './App.css'
 
 const CAT_COLORS = {
-  music: '#000',
-  sport: '#000',
-  art: '#000',
-  food: '#000',
-  community: '#000',
+  book: '#000',
+  novel: '#000',
+  short_story: '#000',
+  poetry: '#000',
+  author: '#000',
 }
-const CAT_LABELS = { music: 'Music', sport: 'Sport', art: 'Art', food: 'Food', community: 'Community' }
+const CAT_LABELS = { book: 'Book', novel: 'Novel', short_story: 'Short Story', poetry: 'Poetry', author: 'Author' }
 const ALL_CATS = Object.keys(CAT_COLORS)
 const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December']
 
@@ -40,11 +40,11 @@ async function geocodeAddress(query) {
 }
 
 const MOCK_EVENTS = [
-  { id: 1, title: 'Jazz in the Park', date: '2026-06-07', cat: 'music', lat: 48.860, lng: 2.337, desc: 'Free open-air jazz festival near the Seine.' },
-  { id: 2, title: '5K Run — Canal Saint-Martin', date: '2026-06-14', cat: 'sport', lat: 48.872, lng: 2.364, desc: 'Community fun run along the canal. All levels welcome.' },
-  { id: 3, title: 'Street Art Tour — Belleville', date: '2026-06-10', cat: 'art', lat: 48.871, lng: 2.383, desc: "Guided walking tour of Belleville's murals." },
-  { id: 4, title: 'Marché des Producteurs', date: '2026-06-08', cat: 'food', lat: 48.853, lng: 2.351, desc: 'Local farmers market with tasting sessions.' },
-  { id: 5, title: 'Repair Café Montmartre', date: '2026-06-21', cat: 'community', lat: 48.887, lng: 2.341, desc: 'Bring anything broken — volunteers help you fix it.' },
+  { id: 1, title: 'One Hundred Years of Solitude', date: '2026-06-07', cat: 'novel', lat: 48.860, lng: 2.337, desc: 'Gabriel García Márquez. A multigenerational saga set in the fictional town of Macondo.' },
+  { id: 2, title: 'Leaves of Grass', date: '2026-06-14', cat: 'poetry', lat: 48.872, lng: 2.364, desc: 'Walt Whitman. A landmark collection celebrating nature, democracy, and the self.' },
+  { id: 3, title: 'The Metamorphosis', date: '2026-06-10', cat: 'short_story', lat: 48.871, lng: 2.383, desc: 'Franz Kafka. A travelling salesman wakes to find himself transformed into a giant insect.' },
+  { id: 4, title: 'Beloved', date: '2026-06-08', cat: 'book', lat: 48.853, lng: 2.351, desc: 'Toni Morrison. A haunting story of a former enslaved woman and the trauma she carries.' },
+  { id: 5, title: 'Jorge Luis Borges', date: '2026-06-21', cat: 'author', lat: 48.887, lng: 2.341, desc: 'Argentine short-story writer, essayist, and poet. Known for Labyrinths and Ficciones.' },
 ]
 
 export default function App() {
@@ -58,7 +58,7 @@ export default function App() {
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
 
   const [modalOpen, setModalOpen] = useState(false)
-  const [form, setForm] = useState({ title: '', date: '', cat: 'music', desc: '', lat: '48.8566', lng: '2.3522' })
+  const [form, setForm] = useState({ title: '', date: '', cat: 'book', desc: '', lat: '48.8566', lng: '2.3522' })
   const [saving, setSaving] = useState(false)
   const [addressQuery, setAddressQuery] = useState('')
   const [geocoding, setGeocoding] = useState(false)
@@ -172,7 +172,7 @@ export default function App() {
               <p className="tagline">let books connect you</p>
             </div>
             <button className="add-btn" onClick={() => {
-              setForm({ title: '', date: new Date().toISOString().slice(0, 10), cat: 'music', desc: '', lat: '48.8566', lng: '2.3522' })
+              setForm({ title: '', date: new Date().toISOString().slice(0, 10), cat: 'book', desc: '', lat: '48.8566', lng: '2.3522' })
               setAddressQuery('')
               setModalOpen(true)
             }}>+ Add event</button>
