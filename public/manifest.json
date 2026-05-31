@@ -1,7 +1,7 @@
 {
-  "name": "Eventful",
-  "short_name": "Eventful",
-  "description": "Discover and share community events on a map",
+  "name": "Levitasium",
+  "short_name": "Levitasium",
+  "description": "Let books find you cool people",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
