@@ -19,10 +19,13 @@
 
 body {
   font-family: 'Short Stack', cursive;
-  background: #FDF7F1;
+  background: #ffffff;
   color: #3c3c3c;
   font-size: 14px;
 }
+
+/* Override DoodleCSS cream background */
+.doodle { background: #ffffff !important; }
 
 .leaflet-container { height: 100%; width: 100%; }
 .leaflet-container img,

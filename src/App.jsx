@@ -444,7 +444,7 @@ const GrainOverlay = memo(function GrainOverlay() {
       ref={canvasRef}
       style={{
         position: 'fixed', inset: 0, width: '100%', height: '100%',
-        zIndex: 9998, pointerEvents: 'none', opacity: 0.45,
+        zIndex: 999, pointerEvents: 'none', opacity: 0.45,
         imageRendering: 'pixelated',
       }}
     />
