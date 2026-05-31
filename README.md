@@ -1,4 +1,4 @@
-# Eventful
+# Levitasium
 
 A community events map + calendar. Built with React, Leaflet, and Supabase.
 
