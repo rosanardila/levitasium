@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react'
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet'
+import { useState, useEffect, useCallback, useRef } from 'react'
+import { MapContainer, TileLayer, Marker } from 'react-leaflet'
 import L from 'leaflet'
 import { supabase } from './supabase'
 import './App.css'
@@ -24,14 +24,20 @@ function makeIcon(cat) {
   })
 }
 
-function MapClickHandler({ picking, onPick }) {
-  useMapEvents({ click: (e) => { if (picking) onPick(e.latlng) } })
-  return null
-}
-
 function formatDate(d) {
   const dt = new Date(d + 'T00:00:00')
   return dt.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+async function geocodeAddress(query) {
+  const res = await fetch(
+    `https://nominatim.openstreetmap.org/search?format=json&limit=1&q=${encodeURIComponent(query)}`,
+    { headers: { Accept: 'application/json' } }
+  )
+  if (!res.ok) return null
+  const data = await res.json()
+  if (!data.length) return null
+  return { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) }
 }
 
 const MOCK_EVENTS = [
@@ -51,15 +57,15 @@ export default function App() {
   const [selectedId, setSelectedId] = useState(null)
   const [calYear, setCalYear] = useState(new Date().getFullYear())
   const [calMonth, setCalMonth] = useState(new Date().getMonth())
-  const [picking, setPicking] = useState(false)
   const [mapRef, setMapRef] = useState(null)
 
-  // Modal state
   const [modalOpen, setModalOpen] = useState(false)
   const [form, setForm] = useState({ title: '', date: '', cat: 'music', desc: '', lat: '48.8566', lng: '2.3522' })
   const [saving, setSaving] = useState(false)
+  const [addressQuery, setAddressQuery] = useState('')
+  const [geocoding, setGeocoding] = useState(false)
 
-  const useSupabase = !!(import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY &&
+  const useSupabase = !!(supabase && import.meta.env.VITE_SUPABASE_URL && import.meta.env.VITE_SUPABASE_ANON_KEY &&
     import.meta.env.VITE_SUPABASE_URL !== 'https://your-project.supabase.co')
 
   const loadEvents = useCallback(async () => {
@@ -94,8 +100,19 @@ export default function App() {
 
   function selectEvent(id) {
     setSelectedId(id)
+    setTab('map')
     const ev = events.find(e => e.id === id)
-    if (ev && mapRef && tab === 'map') mapRef.setView([ev.lat, ev.lng], 15)
+    if (ev && mapRef) mapRef.setView([ev.lat, ev.lng], 15)
+  }
+
+  async function handleGeocode() {
+    if (!addressQuery.trim()) return
+    setGeocoding(true)
+    try {
+      const res = await geocodeAddress(addressQuery)
+      if (!res) { alert('Location not found — try a more specific address'); return }
+      setForm(f => ({ ...f, lat: res.lat.toFixed(5), lng: res.lng.toFixed(5) }))
+    } finally { setGeocoding(false) }
   }
 
   async function saveEvent() {
@@ -111,14 +128,9 @@ export default function App() {
     }
     setSaving(false)
     setModalOpen(false)
+    setAddressQuery('')
   }
 
-  function handleMapPick(latlng) {
-    setForm(f => ({ ...f, lat: latlng.lat.toFixed(5), lng: latlng.lng.toFixed(5) }))
-    setPicking(false)
-  }
-
-  // Calendar helpers
   const calDays = (() => {
     const first = new Date(calYear, calMonth, 1)
     const startDow = (first.getDay() + 6) % 7
@@ -141,19 +153,21 @@ export default function App() {
 
   return (
     <div className="app">
-      {/* Top bar */}
       <div className="topbar">
         <h1 className="logo">Eventful</h1>
-        {!useSupabase && <span className="mock-badge">mock data — add Supabase env vars to go live</span>}
+        {!useSupabase && <span className="mock-badge">mock data</span>}
         <div className="tab-group">
           <button className={`tab-btn${tab === 'map' ? ' active' : ''}`} onClick={() => setTab('map')}>🗺 Map</button>
           <button className={`tab-btn${tab === 'cal' ? ' active' : ''}`} onClick={() => setTab('cal')}>📅 Calendar</button>
         </div>
-        <button className="add-btn" onClick={() => { setForm({ title: '', date: new Date().toISOString().slice(0,10), cat: 'music', desc: '', lat: '48.8566', lng: '2.3522' }); setModalOpen(true) }}>+ Add event</button>
+        <button className="add-btn" onClick={() => {
+          setForm({ title: '', date: new Date().toISOString().slice(0, 10), cat: 'music', desc: '', lat: '48.8566', lng: '2.3522' })
+          setAddressQuery('')
+          setModalOpen(true)
+        }}>+ Add event</button>
       </div>
 
       <div className="main">
-        {/* Sidebar */}
         <div className="sidebar">
           <div className="search-wrap">
             <input className="search-input" placeholder="Search events…" value={search} onChange={e => setSearch(e.target.value)} />
@@ -180,22 +194,18 @@ export default function App() {
           </div>
         </div>
 
-        {/* Content */}
         <div className="content">
-          {/* Map */}
           <div className="map-wrap" style={{ display: tab === 'map' ? 'block' : 'none' }}>
             <MapContainer center={[48.866, 2.355]} zoom={13} style={{ height: '100%', width: '100%' }}
               ref={setMapRef}
               whenReady={e => setMapRef(e.target)}>
               <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" attribution="© OpenStreetMap" />
-              <MapClickHandler picking={picking} onPick={handleMapPick} />
               {filtered.map(ev => (
                 <Marker key={ev.id} position={[ev.lat, ev.lng]} icon={makeIcon(ev.cat)}
-                  eventHandlers={{ click: () => setSelectedId(ev.id) }} />
+                  eventHandlers={{ click: () => selectEvent(ev.id) }} />
               ))}
             </MapContainer>
 
-            {/* Map overlay */}
             {selectedEvent && tab === 'map' && (
               <div className="map-overlay">
                 <button className="ov-close" onClick={() => setSelectedId(null)}>×</button>
@@ -209,7 +219,6 @@ export default function App() {
             )}
           </div>
 
-          {/* Calendar */}
           {tab === 'cal' && (
             <div className="calendar-view">
               <div className="cal-nav">
@@ -235,27 +244,52 @@ export default function App() {
         </div>
       </div>
 
-      {/* Add event modal */}
       {modalOpen && (
         <div className="modal-bg" onClick={e => e.target === e.currentTarget && setModalOpen(false)}>
           <div className="modal">
             <h2>New event</h2>
-            <div className="field"><label>Title</label><input value={form.title} onChange={e => setForm(f => ({...f, title: e.target.value}))} placeholder="What's happening?" /></div>
-            <div className="field"><label>Date</label><input type="date" value={form.date} onChange={e => setForm(f => ({...f, date: e.target.value}))} /></div>
-            <div className="field"><label>Category</label>
-              <select value={form.cat} onChange={e => setForm(f => ({...f, cat: e.target.value}))}>
+            <div className="field">
+              <label>Title</label>
+              <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))} placeholder="What's happening?" />
+            </div>
+            <div className="field">
+              <label>Description</label>
+              <textarea value={form.desc} onChange={e => setForm(f => ({ ...f, desc: e.target.value }))} placeholder="Tell us more…" />
+            </div>
+            <div className="field">
+              <label>Date</label>
+              <input type="date" value={form.date} onChange={e => setForm(f => ({ ...f, date: e.target.value }))} />
+            </div>
+            <div className="field">
+              <label>Category</label>
+              <select value={form.cat} onChange={e => setForm(f => ({ ...f, cat: e.target.value }))}>
                 {ALL_CATS.map(c => <option key={c} value={c}>{CAT_LABELS[c]}</option>)}
               </select>
             </div>
-            <div className="field"><label>Description</label><textarea value={form.desc} onChange={e => setForm(f => ({...f, desc: e.target.value}))} placeholder="Tell us more…" /></div>
             <div className="field">
               <label>Location</label>
-              <div style={{ display: 'flex', gap: 6 }}>
-                <input style={{ flex: 1 }} value={form.lat} onChange={e => setForm(f => ({...f, lat: e.target.value}))} placeholder="Lat" />
-                <input style={{ flex: 1 }} value={form.lng} onChange={e => setForm(f => ({...f, lng: e.target.value}))} placeholder="Lng" />
-                <button className="pick-btn" onClick={() => { setModalOpen(false); setPicking(true) }} title="Pick on map">📍</button>
+              <div style={{ display: 'flex', gap: 6, marginBottom: 8 }}>
+                <input
+                  style={{ flex: 1 }}
+                  value={addressQuery}
+                  onChange={e => setAddressQuery(e.target.value)}
+                  onKeyDown={e => e.key === 'Enter' && handleGeocode()}
+                  placeholder="Search address or venue…"
+                />
+                <button className="pick-btn" onClick={handleGeocode} disabled={geocoding} title="Search">
+                  {geocoding ? '…' : '🔍'}
+                </button>
               </div>
-              <div style={{ fontSize: 11, color: 'var(--c-txt2)', marginTop: 4 }}>Or close this and click the map to pick a location</div>
+              <div style={{ height: 220, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--c-border, #e5e7eb)' }}>
+                <PickerMap
+                  lat={parseFloat(form.lat)}
+                  lng={parseFloat(form.lng)}
+                  onPick={(lat, lng) => setForm(f => ({ ...f, lat: lat.toFixed(5), lng: lng.toFixed(5) }))}
+                />
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--c-txt2)', marginTop: 4 }}>
+                📍 {parseFloat(form.lat).toFixed(4)}, {parseFloat(form.lng).toFixed(4)} · click map to adjust pin
+              </div>
             </div>
             <div className="modal-actions">
               <button className="btn-cancel" onClick={() => setModalOpen(false)}>Cancel</button>
@@ -266,4 +300,51 @@ export default function App() {
       )}
     </div>
   )
+}
+
+function PickerMap({ lat, lng, onPick }) {
+  const containerRef = useRef(null)
+  const mapRef = useRef(null)
+  const markerRef = useRef(null)
+  const LRef = useRef(null)
+  const iconRef = useRef(null)
+  const onPickRef = useRef(onPick)
+  onPickRef.current = onPick
+
+  useEffect(() => {
+    let cancelled = false
+    ;(async () => {
+      const L = (await import('leaflet')).default
+      if (cancelled || !containerRef.current || mapRef.current) return
+      LRef.current = L
+      iconRef.current = L.icon({
+        iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+        iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+        shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+        iconSize: [25, 41], iconAnchor: [12, 41], popupAnchor: [1, -34], shadowSize: [41, 41],
+      })
+      const map = L.map(containerRef.current, { center: [lat, lng], zoom: 13 })
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors', maxZoom: 19,
+      }).addTo(map)
+      map.on('click', e => onPickRef.current(e.latlng.lat, e.latlng.lng))
+      mapRef.current = map
+      markerRef.current = L.marker([lat, lng], { icon: iconRef.current }).addTo(map)
+      requestAnimationFrame(() => { if (!cancelled && mapRef.current) mapRef.current.invalidateSize() })
+    })()
+    return () => {
+      cancelled = true
+      if (mapRef.current) { mapRef.current.remove(); mapRef.current = null; markerRef.current = null }
+    }
+  }, []) // eslint-disable-line
+
+  useEffect(() => {
+    const L = LRef.current; const map = mapRef.current; const icon = iconRef.current
+    if (!L || !map || !icon) return
+    if (markerRef.current) { markerRef.current.remove(); markerRef.current = null }
+    markerRef.current = L.marker([lat, lng], { icon }).addTo(map)
+    map.setView([lat, lng], Math.max(map.getZoom(), 13))
+  }, [lat, lng]) // eslint-disable-line
+
+  return <div ref={containerRef} style={{ height: '100%', width: '100%' }} />
 }

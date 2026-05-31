@@ -55,7 +55,7 @@
 .cal-more { font-size: 9px; color: var(--c-txt2); }
 
 .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,.4); z-index: 1000; display: flex; align-items: center; justify-content: center; }
-.modal { background: var(--c-bg); border-radius: 12px; padding: 22px 26px; width: 340px; border: 0.5px solid var(--c-border); }
+.modal { background: var(--c-bg); border-radius: 12px; padding: 22px 26px; width: min(500px, 95vw); max-height: 90vh; overflow-y: auto; border: 0.5px solid var(--c-border); }
 .modal h2 { font-family: var(--ff-display); font-size: 20px; font-weight: 400; margin-bottom: 16px; }
 .field { margin-bottom: 11px; }
 .field label { display: block; font-size: 12px; font-weight: 500; color: var(--c-txt2); margin-bottom: 4px; }
