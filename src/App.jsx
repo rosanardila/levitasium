@@ -75,7 +75,7 @@ export default function App() {
           title: e.title,
           desc: e.description,
           date: e.start_at ? e.start_at.slice(0, 10) : '',
-          cat: e.tags?.[0] || 'community',
+          cat: ALL_CATS.includes(e.tags?.[0]) ? e.tags[0] : 'book',
           lat: e.lat,
           lng: e.lng,
         })))

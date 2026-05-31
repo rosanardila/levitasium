@@ -24,10 +24,30 @@ body {
   font-size: 14px;
 }
 
-/* Override DoodleCSS cream backgrounds */
+/* Override DoodleCSS cream backgrounds and fix button text */
 .doodle { background: #ffffff !important; }
-.doodle button { background: #ffffff !important; }
+.doodle button { background: #ffffff !important; color: #000000 !important; }
 .doodle input, .doodle select, .doodle textarea { background: #ffffff !important; }
+
+/* Remove DoodleCSS thick border-image from category chips — it hides text */
+.cat-chip {
+  border: 1.5px solid #000 !important;
+  border-image: none !important;
+  padding: 5px 14px !important;
+  color: #555 !important;
+}
+.cat-chip.on {
+  background: #000 !important;
+  color: #fff !important;
+}
+
+/* Active tab: invert so it's clearly selected */
+.tabs-trigger.active {
+  background: #000 !important;
+  color: #fff !important;
+  border-image: none !important;
+  border: none !important;
+}
 
 .leaflet-container { height: 100%; width: 100%; }
 .leaflet-container img,
