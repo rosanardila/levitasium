@@ -5,7 +5,7 @@
 .topbar {
   position: sticky; top: 0; z-index: 998;
   border-bottom: 2px solid #3c3c3c;
-  background: #FDF7F1;
+  background: #ffffff;
 }
 .topbar-inner {
   display: flex; align-items: center; justify-content: space-between;
@@ -106,7 +106,7 @@
   display: flex; align-items: center; justify-content: center; padding: 16px;
 }
 .modal {
-  background: #FDF7F1; padding: 24px 26px;
+  background: #ffffff; padding: 24px 26px;
   width: min(520px, 100%); max-height: 90vh; overflow-y: auto; position: relative;
 }
 .modal-close {

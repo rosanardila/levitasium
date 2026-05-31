@@ -24,8 +24,10 @@ body {
   font-size: 14px;
 }
 
-/* Override DoodleCSS cream background */
+/* Override DoodleCSS cream backgrounds */
 .doodle { background: #ffffff !important; }
+.doodle button { background: #ffffff !important; }
+.doodle input, .doodle select, .doodle textarea { background: #ffffff !important; }
 
 .leaflet-container { height: 100%; width: 100%; }
 .leaflet-container img,

@@ -417,36 +417,27 @@ function PickerMap({ lat, lng, onPick = null }) {
 }
 
 const GrainOverlay = memo(function GrainOverlay() {
-  const canvasRef = useRef(null)
-
   useEffect(() => {
-    const canvas = canvasRef.current
-    if (!canvas) return
-    const w = 600
-    const h = 600
+    const canvas = document.createElement('canvas')
+    const w = 600, h = 600
     canvas.width = w
     canvas.height = h
     const ctx = canvas.getContext('2d')
     const imageData = ctx.createImageData(w, h)
     const data = imageData.data
     for (let i = 0; i < data.length; i += 4) {
-      const on = Math.random() < 0.04
-      data[i] = 0
-      data[i + 1] = 0
-      data[i + 2] = 0
-      data[i + 3] = on ? Math.floor(Math.random() * 80 + 20) : 0
+      const on = Math.random() < 0.035
+      data[i] = 0; data[i + 1] = 0; data[i + 2] = 0
+      data[i + 3] = on ? Math.floor(Math.random() * 90 + 30) : 0
     }
     ctx.putImageData(imageData, 0, 0)
+    document.body.style.backgroundImage = `url(${canvas.toDataURL()})`
+    document.body.style.backgroundSize = '600px 600px'
+    return () => {
+      document.body.style.backgroundImage = ''
+      document.body.style.backgroundSize = ''
+    }
   }, [])
 
-  return (
-    <canvas
-      ref={canvasRef}
-      style={{
-        position: 'fixed', inset: 0, width: '100%', height: '100%',
-        zIndex: 999, pointerEvents: 'none', opacity: 0.45,
-        imageRendering: 'pixelated',
-      }}
-    />
-  )
+  return null
 })
