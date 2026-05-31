@@ -5,11 +5,11 @@ import { supabase } from './supabase'
 import './App.css'
 
 const CAT_COLORS = {
-  music: '#534AB7',
-  sport: '#1D9E75',
-  art: '#D85A30',
-  food: '#BA7517',
-  community: '#185FA5',
+  music: '#000',
+  sport: '#000',
+  art: '#000',
+  food: '#000',
+  community: '#000',
 }
 const CAT_LABELS = { music: 'Music', sport: 'Sport', art: 'Art', food: 'Food', community: 'Community' }
 const ALL_CATS = Object.keys(CAT_COLORS)
@@ -197,7 +197,7 @@ export default function App() {
           <div className="tags-row">
             {ALL_CATS.map(cat => (
               <button key={cat} className={`cat-chip${selectedCats.has(cat) ? ' on' : ''}`}
-                style={selectedCats.has(cat) ? { background: CAT_COLORS[cat], borderColor: CAT_COLORS[cat], color: '#fff' } : {}}
+                style={selectedCats.has(cat) ? { background: '#000', borderColor: '#000', color: '#fff' } : {}}
                 onClick={() => toggleCat(cat)}>{CAT_LABELS[cat]}</button>
             ))}
             {!useSupabase && <span className="mock-badge">mock data</span>}
@@ -232,7 +232,6 @@ export default function App() {
                     <div>
                       <h3 className="card-title">{ev.title}</h3>
                       <div className="card-meta" style={{ marginTop: 4 }}>
-                        <span style={{ width: 7, height: 7, borderRadius: '50%', background: CAT_COLORS[ev.cat], display: 'inline-block', flexShrink: 0 }} />
                         {CAT_LABELS[ev.cat]}
                       </div>
                     </div>
@@ -274,7 +273,7 @@ export default function App() {
                   <div key={i} className={`cal-cell${!cell.cur ? ' other-month' : ''}${cell.isToday ? ' today' : ''}`}>
                     <div className="cal-num">{cell.day}</div>
                     {cell.evs?.slice(0, 3).map(ev => (
-                      <div key={ev.id} className="cal-ev-pill" style={{ background: CAT_COLORS[ev.cat] }}
+                      <div key={ev.id} className="cal-ev-pill" style={{ background: '#000' }}
                         title={ev.title} onClick={() => selectEvent(ev.id)}>{ev.title}</div>
                     ))}
                     {cell.evs?.length > 3 && <div className="cal-more">+{cell.evs.length - 3} more</div>}
@@ -301,7 +300,7 @@ export default function App() {
         <div className="modal-bg" onClick={e => e.target === e.currentTarget && setDetailEvent(null)}>
           <div className="modal doodle-border">
             <button className="modal-close" onClick={() => setDetailEvent(null)}>×</button>
-            <div className="detail-cat" style={{ color: CAT_COLORS[detailEvent.cat] }}>{CAT_LABELS[detailEvent.cat]}</div>
+            <div className="detail-cat">{CAT_LABELS[detailEvent.cat]}</div>
             <h2 className="detail-title">{detailEvent.title}</h2>
             <div className="detail-meta">📅 {formatDate(detailEvent.date)}</div>
             {detailEvent.desc && <p className="detail-desc">{detailEvent.desc}</p>}

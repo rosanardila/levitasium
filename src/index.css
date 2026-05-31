@@ -5,16 +5,16 @@
   --ff-body: 'Short Stack', cursive;
   --radius: 4px;
 
-  --c-bg:      #FDF7F1;
-  --c-card:    #fff;
-  --c-bg2:     #f5ede2;
-  --c-bg3:     #ece0d0;
-  --c-border:  #3c3c3c;
-  --c-border2: #3c3c3c;
-  --c-txt:     #3c3c3c;
-  --c-txt2:    #6b6560;
-  --c-accent:  #b94a1f;
-  --c-accent2: #9a3c18;
+  --c-bg:      #ffffff;
+  --c-card:    #ffffff;
+  --c-bg2:     #f0f0f0;
+  --c-bg3:     #e0e0e0;
+  --c-border:  #000000;
+  --c-border2: #000000;
+  --c-txt:     #000000;
+  --c-txt2:    #555555;
+  --c-accent:  #000000;
+  --c-accent2: #333333;
 }
 
 body {
