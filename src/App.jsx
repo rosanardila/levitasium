@@ -168,8 +168,8 @@ export default function App() {
         <div className="container">
           <div className="topbar-inner">
             <div className="logo-wrap">
-              <h1 className="logo">Eventful</h1>
-              <p className="tagline">Community events, on a map.</p>
+              <h1 className="logo">Levitasium</h1>
+              <p className="tagline">let books connect you</p>
             </div>
             <button className="add-btn" onClick={() => {
               setForm({ title: '', date: new Date().toISOString().slice(0, 10), cat: 'music', desc: '', lat: '48.8566', lng: '2.3522' })
